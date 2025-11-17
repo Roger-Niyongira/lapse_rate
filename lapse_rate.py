@@ -94,18 +94,17 @@ else:
                 st.info(f"No data available for selected gauges in {yr}")
                 continue
 
-            st.subheader(f"Lapse rate vs elevation – {yr}")
+            st.subheader(f"Temperature vs elevation – {yr}")
 
             chart = (
                 alt.Chart(df_alt)
                 .mark_point()
                 .encode(
                     x=alt.X("Elevation_m", title="Elevation (m)"),
-                    y=alt.Y("Temp_lapse",
-                            title="Lapse Rate (°C/km)",
-                            scale=alt.Scale(domain=[y_min, y_max])),
+                    y=alt.Y("TEMP_AVE",
+                            title="Temperature (°C)"),
                     color=alt.Color("Gauge", title="Gauge"),
-                    tooltip=["Gauge", "Elevation_m", "Temp_lapse", DATE_COL]
+                    tooltip=["Gauge", "Elevation_m", "TEMP_AVE", DATE_COL]
                 )
             )
 
@@ -120,20 +119,20 @@ else:
                 continue
 
             df_ma_agg = (
-                df_ma.groupby(["Gauge", "Elevation_m"], as_index=False)["Temp_lapse"]
+                df_ma.groupby(["Gauge", "Elevation_m"], as_index=False)["TEMP_AVE"]
                 .mean()
             )
 
-            st.subheader(f"Mean annual lapse rate vs elevation – {yr}")
+            st.subheader(f"Mean Temperature rate vs elevation – {yr}")
 
             chart = (
                 alt.Chart(df_ma_agg)
                 .mark_point(size=120)
                 .encode(
                     x=alt.X("Elevation_m", title="Elevation (m)"),
-                    y=alt.Y("Temp_lapse", title="Mean annual lapse rate (°C/km)"),
+                    y=alt.Y("TEMP_AVE", title="Mean annual temp (°C)"),
                     color="Gauge",
-                    tooltip=["Gauge", "Elevation_m", "Temp_lapse"]
+                    tooltip=["Gauge", "Elevation_m", "TEMP_AVE"]
                 )
             )
 
