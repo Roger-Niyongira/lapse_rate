@@ -96,20 +96,48 @@ else:
 
             st.subheader(f"Temperature vs elevation – {yr}")
 
-            chart = (
+            # Base points layer
+            points = (
                 alt.Chart(df_alt)
                 .mark_point()
                 .encode(
                     x=alt.X("Elevation_m", title="Elevation (m)"),
-                    y=alt.Y("TEMP_AVE",
-                            title="Temperature (°C)"),
-                    color=alt.Color("Gauge", title="Gauge"),
+                    y=alt.Y("TEMP_AVE", title="Temperature (°C)"),
+                    color=alt.Color("Gauge:N", title="Gauge"),
                     tooltip=["Gauge", "Elevation_m", "TEMP_AVE", DATE_COL]
                 )
             )
 
+            # trendlines per date
+            if chart_type == "Scatter + trendline":
+                # One regression line per date
+                trend = (
+                    alt.Chart(df_alt)
+                    .transform_regression(
+                        "Elevation_m",
+                        "TEMP_AVE",
+                        groupby=[DATE_COL]
+                    )
+                    .mark_line(strokeWidth=2)
+                    .encode(
+                        x=alt.X("Elevation_m", title="Elevation (m)"),
+                        y=alt.Y("TEMP_AVE", title="Temperature (°C)"),
+                        color=alt.Color(
+                            f"{DATE_COL}:T",
+                            title="Date",
+                            scale=alt.Scale(scheme="reds")  # << red colour scheme here
+                        ),
+                        tooltip=[DATE_COL]
+                    )
+                )
+
+                chart = points + trend
+            else:
+                # just the scatter
+                chart = points
+
             st.altair_chart(chart, use_container_width=True)
-            continue  # next year
+            continue
 
         if plot_by == "Mean annual":
             df_ma = df_year[df_year["Gauge"].isin(selected_gauges)]
@@ -131,7 +159,6 @@ else:
                 .encode(
                     x=alt.X("Elevation_m", title="Elevation (m)"),
                     y=alt.Y("TEMP_AVE", title="Mean annual temp (°C)"),
-                    scale=alt.Scale(domain=[y_min, y_max]),
                     color="Gauge",
                     tooltip=["Gauge", "Elevation_m", "TEMP_AVE"]
                 )
