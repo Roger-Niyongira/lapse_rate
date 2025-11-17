@@ -74,8 +74,8 @@ for year in years_list:
     if st.sidebar.checkbox(str(year), key=f"year_{year}"):
         selected_years.append(year)
 
-y_min = df["Temp_lapse"].min() - 1
-y_max = df["Temp_lapse"].max() + 1
+y_min = df["TEMP_AVE"].min() - 1
+y_max = df["TEMP_AVE"].max() + 1
 
 # MAIN CONTENT
 if not selected_gauges:
@@ -131,6 +131,7 @@ else:
                 .encode(
                     x=alt.X("Elevation_m", title="Elevation (m)"),
                     y=alt.Y("TEMP_AVE", title="Mean annual temp (°C)"),
+                    scale=alt.Scale(domain=[y_min, y_max]),
                     color="Gauge",
                     tooltip=["Gauge", "Elevation_m", "TEMP_AVE"]
                 )
@@ -162,8 +163,8 @@ else:
                             axis=alt.Axis(format="%Y-%m-%d")
                         ),
                         y=alt.Y(
-                            "Temp_lapse",
-                            title="Lapse Rate (°C/km)",
+                            "TEMP_AVE",
+                            title="Temperature (°C)",
                             scale=alt.Scale(domain=[y_min, y_max])
                         )
                     )
@@ -173,12 +174,12 @@ else:
                     else:
                         points = base.mark_point()
                         trend = base.transform_regression(
-                            DATE_COL, "Temp_lapse"
+                            DATE_COL, "TEMP_AVE"
                         ).mark_line()
                         chart = points + trend
 
                         x_num = (df_plot[DATE_COL] - df_plot[DATE_COL].min()).dt.days.astype(float)
-                        y = df_plot["Temp_lapse"].astype(float).values
+                        y = df_plot["TEMP_AVE"].astype(float).values
 
                         if len(x_num) > 1:
                             m, b = np.polyfit(x_num, y, 1)
@@ -188,7 +189,7 @@ else:
                             r2 = 1 - ss_res / ss_tot if ss_tot != 0 else np.nan
 
                             st.caption(
-                                f"Trendline: {m:.3f}·day + {b:.3f}  (°C/km),  R² = {r2:.3f}"
+                                f"Trendline: {m:.3f}·day + {b:.3f}  (°C),  R² = {r2:.3f}"
                             )
 
                     st.altair_chart(chart, use_container_width=True)
